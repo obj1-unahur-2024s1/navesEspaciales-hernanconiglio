@@ -29,28 +29,57 @@ class NaveEspacial {
 		return combustible >= 4000 and velocidad <= 12000 and self.adicionalTranquilidad()
 	}
 	method adicionalTranquilidad()
+	method recibirAmenaza() {
+		self.escapar()
+		self.avisar()
+	}
+	method escapar() //metodo abstracto
+	method avisar() //metodo abstracto
+	method estaDeRelajo() {
+		return self.estaTranquila() and self.tienePocaActividad()
+	}
+	method tienePocaActividad() //metodo abstracto
 }
 
 class NaveBaliza inherits NaveEspacial {
-	var colorBaliza
+	var colorBaliza = "azul" //azul será el valor inicial
+	var cambioDeColor = false
 	
-	method cambiarColorDeBaliza(colorNuevo) { colorBaliza = colorNuevo}
+	method cambiarColorDeBaliza(colorNuevo) { 
+		colorBaliza = colorNuevo
+		cambioDeColor = true
+	}
 	override method prepararViaje() {
 		super()
 		self.cambiarColorDeBaliza("verde")
 		self.ponerseParaleloAlSol()
 	}
 	override method adicionalTranquilidad() = colorBaliza != "rojo"
+	override method escapar() {self.irHaciaElSol()}
+	override method avisar() {self.cambiarColorDeBaliza("rojo")}
+	override method tienePocaActividad() = not cambioDeColor
 }
 
 class NaveDePasajeros inherits NaveEspacial {
 	const cantidadDePasajeros
 	var racionesDeComida = 0
 	var racionesDeBebida = 0
+	var racionesDeComidaServidas= 0
 	
+	method racionesDeComida() = racionesDeComida
+	method racionesDeBebida() = racionesDeBebida
+	method racionesDeComidaServidas() = racionesDeComidaServidas
+	
+	method servirComida(cuanto) {
+		racionesDeComidaServidas += racionesDeComida.min(cuanto)
+		self.descargarComida(cuanto)
+		
+	}
 	method cargarComida(cuanto) { racionesDeComida += cuanto }
 	method cargarBebida(cuanto) { racionesDeBebida += cuanto }
-	method descargarComida(cuanto) { racionesDeComida = 0.max(racionesDeComida - cuanto) }
+	method descargarComida(cuanto) { 
+		racionesDeComida = 0.max(racionesDeComida - cuanto)
+	}
 	method descargarBebida(cuanto) { racionesDeBebida = 0.max(racionesDeBebida - cuanto) }
 	override method prepararViaje() {
 		super()
@@ -59,13 +88,28 @@ class NaveDePasajeros inherits NaveEspacial {
 		self.acercarseUnPocoAlSol()
 	}
 	override method adicionalTranquilidad() = true
+	override method escapar() {self.acelerar(velocidad)}
+	override method avisar() {
+		self.servirComida(cantidadDePasajeros)
+		self.descargarBebida(cantidadDePasajeros*2)
+	}
+	override method tienePocaActividad() = racionesDeComidaServidas < 50
+	method valores() {
+		console.println("racionesDeComida: "+ racionesDeComida)
+		console.println("racionesDeBebida: "+ racionesDeBebida)
+		console.println("racionesDeComidaServidas: "+ racionesDeComidaServidas)
+	}
 }
 
 class NaveHospital inherits NaveDePasajeros {
 	var quirofanosPreparados = false
 	method prepararQuirofanos() { quirofanosPreparados = true }
 	method noPrepararQuirofanos() { quirofanosPreparados = false }
-	
+	override method adicionalTranquilidad() = not quirofanosPreparados
+	override method recibirAmenaza() {
+		super()
+		self.prepararQuirofanos()
+	}
 }
 
 class NaveDeCombate inherits NaveEspacial {
@@ -95,8 +139,22 @@ class NaveDeCombate inherits NaveEspacial {
 		self.acelerar(15000)
 		self.emitirMensaje("Saliendo en misión")
 	}
+	override method adicionalTranquilidad() = not self.misilesDesplegados()
+	override method escapar() {
+		self.acercarseUnPocoAlSol()
+		self.acercarseUnPocoAlSol()
+	}
+	override method avisar() {self.emitirMensaje("Amenaza recibida")}
+	override method tienePocaActividad() = self.esEscueta()
 }
 
 class NaveSigilosa inherits NaveDeCombate {
-	
+	override method adicionalTranquilidad() {
+		return super() and not self.estaInvisible()
+	}
+	override method escapar() {
+		super()
+		self.desplegarMisiles()
+		self.ponerseInvisible()
+	}
 }
