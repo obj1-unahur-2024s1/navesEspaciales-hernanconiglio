@@ -25,6 +25,10 @@ class NaveEspacial {
 		self.cargarCombustible(30000)
 		self.acelerar(5000)
 	}
+	method estaTranquila() {
+		return combustible >= 4000 and velocidad <= 12000 and self.adicionalTranquilidad()
+	}
+	method adicionalTranquilidad()
 }
 
 class NaveBaliza inherits NaveEspacial {
@@ -36,6 +40,7 @@ class NaveBaliza inherits NaveEspacial {
 		self.cambiarColorDeBaliza("verde")
 		self.ponerseParaleloAlSol()
 	}
+	override method adicionalTranquilidad() = colorBaliza != "rojo"
 }
 
 class NaveDePasajeros inherits NaveEspacial {
@@ -53,6 +58,14 @@ class NaveDePasajeros inherits NaveEspacial {
 		self.cargarBebida(cantidadDePasajeros*6)
 		self.acercarseUnPocoAlSol()
 	}
+	override method adicionalTranquilidad() = true
+}
+
+class NaveHospital inherits NaveDePasajeros {
+	var quirofanosPreparados = false
+	method prepararQuirofanos() { quirofanosPreparados = true }
+	method noPrepararQuirofanos() { quirofanosPreparados = false }
+	
 }
 
 class NaveDeCombate inherits NaveEspacial {
@@ -82,4 +95,8 @@ class NaveDeCombate inherits NaveEspacial {
 		self.acelerar(15000)
 		self.emitirMensaje("Saliendo en misión")
 	}
+}
+
+class NaveSigilosa inherits NaveDeCombate {
+	
 }
